@@ -242,6 +242,7 @@ export class AppService {
               category: {
                 select: {
                   rank: true,
+                  name: true,
                 },
               },
             },
@@ -268,6 +269,7 @@ export class AppService {
           categories: {
             select: {
               rank: true,
+              name: true,
             },
           },
         },
@@ -285,6 +287,54 @@ export class AppService {
         return categoriesRankCalcA > categoriesRankCalcB ? 1 : -1;
       });
 
+      const allPosts = new Array();
+
+      for (let i = 0; i < posts.length; i++) {
+        allPosts.push({
+          title: posts[i].title,
+          content: posts[i].content,
+          categories: posts[i].PostCategory.map((c) => [c.category.name]),
+        });
+      }
+
+      for (let i = 0; i < groupPosts.length; i++) {
+        allPosts.push({
+          title: groupPosts[i].title,
+          content: groupPosts[i].content,
+          categories: groupPosts[i].categories.map((c) => [c.name]),
+        });
+      }
+
+      return {
+        allPosts,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getAllPostsFromProfile(authorId: number) {
+    try {
+      const posts = await this.prisma.post.findMany({
+        where: {
+          authorId: authorId,
+        },
+        select: {
+          title: true,
+          content: true,
+          published: true,
+        },
+      });
+      const groupPosts = await this.prisma.groupPost.findMany({
+        where: {
+          group: {
+            users: {
+              some: {
+                id: authorId,
+              },
+            },
+          },
+        },
+      });
       return {
         posts,
         groupPosts,

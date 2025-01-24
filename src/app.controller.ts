@@ -15,10 +15,14 @@ import { CreateUserDto } from './dtos/creatuser.dto';
 import { CreatePostDto, ListOfPostsCreate } from './dtos/createpost.dto';
 import { CreateCategoryDto } from './dtos/createcategory.dto';
 import { GroupPostDto, UpdateGroupPost } from './dtos/creategrouppost.dto';
+import { ProfileService } from './profile.service';
 
 @Controller('main')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly profileService: ProfileService,
+  ) {}
 
   @Get('user/:id')
   getUser(
@@ -94,5 +98,55 @@ export class AppController {
   @Get('wall')
   getGlobalPost() {
     return this.appService.getGlobalWallPosts();
+  }
+
+  @Get('profile/:authorId')
+  async getAllPosts(@Param('authorId', ParseIntPipe) authorId: number) {
+    return this.appService.getAllPostsFromProfile(authorId);
+  }
+
+  @Put('follow_request/:userId')
+  async followRequestUpdate(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() body: { followingId: number },
+  ) {
+    return await this.profileService.updateFollowRequest(
+      userId,
+      body.followingId,
+    );
+  }
+
+  @Post('posts/:postId/comments/:userId')
+  async addCommentOnPostByUser(
+    @Param('postId', ParseIntPipe) postId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body()
+    body: {
+      content: string;
+    },
+  ) {
+    return await this.profileService.addCommentOnPost(
+      postId,
+      userId,
+      body.content,
+    );
+  }
+
+  @Get('posts/:postId/comments')
+  async getCommentsForPosts(@Param('postId', ParseIntPipe) postId: number) {
+    return await this.profileService.getCommentsOfPosts(postId);
+  }
+
+  @Put('posts/:postId/likes/:userId')
+  async updateLikeInPost(
+    @Param('postId', ParseIntPipe) postId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    return await this.profileService.updateLike(postId, userId);
+  }
+
+  @Get('posts/:postId/likes')
+  async getPostLikes(@Param('postId', ParseIntPipe) postId: number) {
+    return await this.profileService.listLikesOnPost(postId);
   }
 }

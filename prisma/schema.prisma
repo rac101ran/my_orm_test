@@ -21,6 +21,8 @@ model User {
   posts     Post[]
   group     Group[]
   GroupPost GroupPost[]
+  comments  Comments[]
+  likes     Likes[]
 }
 
 model Post {
@@ -31,6 +33,10 @@ model Post {
   author       User?          @relation(fields: [authorId], references: [id])
   authorId     Int?
   PostCategory PostCategory[]
+  comments     Comments[]
+  likes        Likes[]
+
+  @@index([authorId])
 }
 
 model Category {
@@ -64,4 +70,33 @@ model GroupPost {
   group      Group?     @relation(fields: [groupId], references: [id])
   groupId    Int
   categories Category[]
+
+  @@index([ownerId])
+}
+
+model Connection {
+  id          Int @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+
+  @@index([followerId, followingId])
+}
+
+model Comments {
+  id        Int      @id @default(autoincrement())
+  content   String
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Likes {
+  id     Int  @id @default(autoincrement())
+  post   Post @relation(fields: [postId], references: [id])
+  postId Int
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
 }
